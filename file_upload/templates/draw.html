@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Canvas tutorial</title>
+</head>
+<body >
+
+<canvas id="myCanvas" width="240" height="240" style="border: 1px solid black;"  onmousedown="down = 1;" onmouseup="down = 0;" onmousemove="cnvs_getCoordinates(event)" ></canvas>
+
+<div >
+    <button type="button" onclick="upload('model')" id="model">模板识别</button>
+    <button type="button" onclick="upload('bayes')" id="bayes">贝叶斯识别</button>
+    <button type="button" onclick="upload('net')" id="net">感知器识别</button>
+    <button type="button" onclick="reset()" id="reset">清除</button>
+    <div id="result" style="display: none">
+        <p id="p" ></p>
+        <button type="button" onclick="right()" id="right">识别正确</button>
+        <button type="button" onclick="wrong()" id="wrong">识别错误</button>
+        <div id="right_answer" style="display: none">
+            <label for="input">请输入正确结果</label>
+            <input type="text" id="input">
+            <button type="button" onclick="set_anwser()" id="down">确定</button>
+        </div>
+    </div>
+</div>
+
+<script src="../static/plugins/jquery/jquery.min.js"></script>
+<script type="text/javascript">
+    down = 0;
+
+    $.ajaxSetup({
+        data: {csrfmiddlewaretoken: '{{ csrf_token }}' }
+    });
+
+    var canvas = document.getElementById("myCanvas");
+    var imgObj = new Image();
+    imgObj.src = "/static/background.png";
+    imgObj.onload = function () {
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(this,0,0,240,240)
+    };
+
+    function upload(type){
+        if(type == "model"){
+            document.getElementById("model").innerHTML = "识别中";
+        }
+        else if(type == "bayes"){
+            document.getElementById("bayes").innerHTML = "识别中";
+        }
+        else{
+            document.getElementById("net").innerHTML = "识别中";
+        }
+        var canvas = document.getElementById("myCanvas");
+        var base = canvas.toDataURL("png");
+        $.ajax({
+                type:'POST',
+                url:"",
+                data:{"img":base,"step":"1","type":type},
+                success:function(ret){
+                    ret = JSON.parse(ret);
+                    document.getElementById("result").style = "display: ";
+                    document.getElementById("p").innerHTML = "识别的数字是"+ret["number"];
+                    if(type == "model"){
+                        document.getElementById("model").innerHTML = "模板识别";
+                    }
+                    else if(type == "bayes"){
+                        document.getElementById("bayes").innerHTML = "贝叶斯识别";
+                    }
+                    else{
+                        document.getElementById("net").innerHTML = "感知器识别";
+                    }
+                }
+            }
+        );
+    }
+
+    function reset(){
+        var canvas = document.getElementById("myCanvas");
+        var imgObj = new Image();
+        imgObj.src = "/static/background.png";
+        imgObj.onload = function () {
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(this,0,0,240,240)
+        };
+        document.getElementById("result").style = "display: none;";
+        document.getElementById("right_answer").style = "display: none";
+        document.getElementById("input").value = "";
+    }
+
+    function right() {
+        $.ajax({
+                type:'POST',
+                url:"",
+                data:{"is_right":"1","step":"2"},
+                success:function(){
+                    alert("导入成功")
+                }
+            }
+        );
+    }
+
+    function wrong() {
+        document.getElementById("right_answer").style = "display: ";
+    }
+
+    function set_anwser(){
+        var number = document.getElementById("input").value;
+        $.ajax({
+                type:'POST',
+                url:"",
+                data:{"is_right":"2","step":"2","number":number},
+                success:function(){
+                    alert("导入成功")
+                }
+            }
+        );
+    }
+    function cnvs_getCoordinates(e)
+    {
+        if(down) {
+            var canvas = document.getElementById("myCanvas");
+            bbox = canvas.getBoundingClientRect();
+            x = Math.round((e.clientX - bbox.left) * (canvas.width / bbox.width));
+            y = Math.round((e.clientY - bbox.top) * (canvas.height / bbox.height));
+            var ctx=canvas.getContext("2d");
+            ctx.beginPath();
+            ctx.arc(x,y,15,0,360,false);
+            ctx.fill();
+            ctx.closePath();
+        }
+    }
+
+</script>
+</body>
+</html>

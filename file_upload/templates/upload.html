@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="UxieVerity">
+    <title>cut_demo</title>
+    <!-- Bootstrap Core CSS -->
+    <link href="../static/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="../static/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="col-lg-1"></div>
+    <div class="col-lg-5">
+        <br>
+        <div class="card">
+            <div class="card-body" style="height: 500px;">
+                <br>
+                <form class="form-horizontal form-material " method="post" enctype="multipart/form-data">
+				{% csrf_token %}
+                    <div class="form-group">
+                        <div class="col-md-12" >
+                            <input type="text" id="photoname" placeholder="点击这里选择图片" class="form-control form-control-line" onclick="$('#photo').click()">
+                            <div><br></div>
+                            <input type="file" class="form-control-file " multiple="multiple" style="display: none" name="img" id="photo">
+                            <div id="img_div" >
+                                <img src="" id="img" class="img-responsive center-block" >
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div class="col-md-12" align="right">
+                    <button type="button" class="btn btn-primary" onclick="cut()">裁剪所选部分</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<script src="../static/plugins/jquery/jquery.min.js"></script>
+<script src="../static/plugins/bootstrap/js/tether.min.js"></script>
+<script src="../static/plugins/bootstrap/js/bootstrap.min.js"></script>
+<script src="../static/canvas2image.js"></script>
+
+<script type="text/javascript">
+
+    $(function () {
+        $('#photo').on('change',function () {
+            var pos = this.value.lastIndexOf("\\");//获取最后一个‘\’出现的位置
+            document.getElementById("photoname").value = this.value.substring(pos+1);//获取最后一个‘\’之后的字符
+            var file = $('#photo').get(0).files[0];
+            var reader = new FileReader();
+            reader.onload = function(e){
+                img = $('#img');
+                img.get(0).src = e.target.result;//onload事件的回调函数接受一个事件对象，该对象的target.result就是文件的内容。
+                var height = img.width()*7/11;
+                var img_div = document.getElementById('img_div');
+                img_div.style = "height:"+height+"px;"+"overflow-y:scroll;";//设置显示图片的div标签的长宽和显示滚动条
+            };
+            reader.readAsDataURL(file);//读取结果是一个基于Base64编码的 data-uri 对象。
+        });
+    });
+
+    function cut() {
+        var $imgs = document.getElementById('imgs');
+        $imgs.innerHTML = "";
+        var $img_div = $('#img_div');
+        var height = $img_div.height();
+        var $img = document.getElementById('img');
+        var rate = $img.width/$img.naturalWidth;//获得图片缩放比
+        var cut_height = (height+$img_div.scrollTop())/rate;//获得基于原图的截取长度
+        //由左到右分别为，原始图片的dom，新图片基于原图大小的宽度，长度，新图片的类型
+        //此处需填以原始图片为标准的长宽尺寸，本人的理解是先处理原始图像，再压缩填充到img标签中
+        $imgs.appendChild(Canvas2Image.convertToImage($img, $img.naturalWidth,cut_height, "png"))
+    }
+
+    function download() {
+        var url = document.getElementById('cut').src;
+        var a = document.createElement('a');
+        var event = new MouseEvent('click');
+        var photoname = $('#photoname').val().split(".")[0];//用'.'进行字段的分割，前面的就是文件名
+        a.download = name || photoname;
+        a.href = url;//将a标签的href指向图片的地址
+        a.dispatchEvent(event)//触发a标签的click事件，指向图片的src，实现图片下载
+    }
+</script>
