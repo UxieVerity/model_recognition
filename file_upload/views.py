@@ -177,7 +177,63 @@ def bayes(self):
             for i in range(28):
                 for j in range(28):
                     eigen_length = 0
-                    if self[i][j] == img["col"+str(i)][j]:
+                    if i==0:
+                      imgCol = img.col0
+                    elif i==1:
+                      imgCol = img.col1
+                    elif i==2:
+                      imgCol = img.col2
+                    elif i==3:
+                      imgCol = img.col3
+                    elif i==4:
+                      imgCol = img.col4
+                    elif i==5:
+                      imgCol = img.col5
+                    elif i==6:
+                      imgCol = img.col6
+                    elif i==7:
+                      imgCol = img.col7
+                    elif i==8:
+                      imgCol = img.col8
+                    elif i==9:
+                      imgCol = img.col9
+                    elif i==10:
+                      imgCol = img.col10
+                    elif i==11:
+                      imgCol = img.col11
+                    elif i==12:
+                      imgCol = img.col12
+                    elif i==13:
+                      imgCol = img.col13
+                    elif i==14:
+                      imgCol = img.col14
+                    elif i==15:
+                      imgCol = img.col15
+                    elif i==16:
+                      imgCol = img.col16
+                    elif i==17:
+                      imgCol = img.col17
+                    elif i==18:
+                      imgCol = img.col18
+                    elif i==19:
+                      imgCol = img.col19
+                    elif i==20:
+                      imgCol = img.col20
+                    elif i==21:
+                      imgCol = img.col21
+                    elif i==22:
+                      imgCol = img.col22
+                    elif i==23:
+                      imgCol = img.col23
+                    elif i==24:
+                      imgCol = img.col24
+                    elif i==25:
+                      imgCol = img.col25
+                    elif i==26:
+                      imgCol = img.col26
+                    elif i==27:
+                      imgCol = img.col27
+                    if self[i][j] == imgCol[j]:
                         eigen_length = eigen_length + 1
                     rate = rate + (eigen_length/length)
         rate = rate/784
