@@ -1,6 +1,7 @@
 # model_recognition
 前端利用canvas进行绘图
-后台利用django框架实现，模板匹配、贝叶斯分类器、感知器手写数字识别。
+后台利用django框架实现，模板匹配、贝叶斯分类器、感知器手写数字识别。  
+核心代码位于file_upload中的views.py文件当中
 
 ## 环境安装:
 该项目是用python3进行编写,所以得安装python3.0以上版本才能运行此项目  
