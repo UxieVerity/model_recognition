@@ -35,20 +35,20 @@ def draw(request):
             global to_str, number,length
             strs = request.POST.get('img').split(',')[1]
             imgdata = base64.b64decode(strs)
-            length = str(len(IMG.objects.filter()))
-            Str = 'E:\\web_design\\django_program\\file_upload\\media\\img\\'+length+'.png'
+            length = str(len(IMG.objects.filter()))#获取新图片的编号
+            Str = 'E:\\web_design\\django_program\\file_upload\\media\\img\\'+length+'.png'#获取新图片的路径
             file = open(Str, 'wb')
-            file.write(imgdata)
+            file.write(imgdata)#绘制新图片
             file.close()
-            img = cv2.imread(Str)
-            cut = img[top(img):down(img), left(img):right(img)]
-            res = cv2.resize(cut, (28, 28), interpolation=cv2.INTER_AREA)
+            img = cv2.imread(Str)#读取图片
+            cut = img[top(img):down(img), left(img):right(img)]#切割图片
+            res = cv2.resize(cut, (28, 28), interpolation=cv2.INTER_AREA)#图片重置大小为28*28
             #cv2.namedWindow("Image")
             #cv2.imshow("Image", res)
             #cv2.waitKey(0)
             #cv2.destroyAllWindows()
             #print(massage(res))
-            to_str = to_string(massage(res))
+            to_str = to_string(massage(res))#获取像素值
             if request.POST.get('type') == "model":
                 #模板匹配
                 number = get_number(to_str)
@@ -92,7 +92,7 @@ def right(self):
         for j in range(240):
             if str(self[j][239-i]) != str(numpy.array([255, 255, 255])):
                 return 240-i
-
+#二值化处理
 def massage(self):
     data =[[0 for col in range(28)] for row in range(28)]
     for i in range(28):
@@ -101,6 +101,7 @@ def massage(self):
                 data[i][j] = 1
     return data
 
+#数字转字符串
 def to_string(self):
     string = [str() for col in range(28)]
     for i in range(28):
@@ -108,6 +109,7 @@ def to_string(self):
             string[i]=string[i]+str(self[i][j])
     return string
 
+#插入数据到数据库
 def insert(self,length,number):
     new_img = IMG(
         img = length+'.png',
@@ -144,21 +146,23 @@ def insert(self,length,number):
     )
     new_img.save()
 
+#模板匹配
 def get_number(to_str):
-    min = 28*28
-    number = 0
-    photos = IMG.objects.filter().values()
+    min = 28*28#不重复的点的个数
+    number = 0#保存min对应的number值
+    photos = IMG.objects.filter().values()#获取所有的数据
     for photo in photos:
         sum = 0
         for i in range(28):
             for j in range(28):
                 if to_str[i][j] != photo["col"+str(i)][j]:
-                    sum = sum + 1
+                    sum = sum + 1#遍历模板,遍历模板数据的像素,不等时sum+1
         if sum < min:
             min = sum
             number = photo["number"]
     return number
 
+#获取指定照片特征值的个数(1的个数)
 def eigenvalue(self):
     eigenvalue = 0
     for sel in self:
@@ -167,14 +171,15 @@ def eigenvalue(self):
                 eigenvalue = eigenvalue + 1
     return eigenvalue
 
+#贝叶斯
 def bayes(self):
-    number = 0
-    max = 0
+    number = 0#保存最大概率所对应的值
+    max = 0#保存最大概率
     for num in range(10):
-        rate = 0
-        length = len(IMG.objects.filter(number=str(num)))
-        for img in IMG.objects.filter(number=str(num)):
-            for i in range(28):
+        rate = 0#初始化待测数为指定数的概率
+        length = len(IMG.objects.filter(number=str(num)))#获取数据库中值为number的模型个数
+        for img in IMG.objects.filter(number=str(num)):#遍历模型
+            for i in range(28):#遍历指定模型的像素获取相等特征值的个数
                 for j in range(28):
                     eigen_length = 0
                     if i==0:
@@ -236,7 +241,7 @@ def bayes(self):
                     if self[i][j] == imgCol[j]:
                         eigen_length = eigen_length + 1
                     rate = rate + (eigen_length/length)
-        rate = rate/784
+        rate = rate/784#rate为待测数为指定数的平均值概率
         #print("num:"+str(num)+"概率:"+str(rate))
         if rate > max:
             max = rate
@@ -251,9 +256,9 @@ def f(x):
     else :
         return 0
 
-b1s = [0 for i in range(10)]
-w1s = [[[0 for a in range(28)] for b in range(28)] for k in range(10)]
-target = [[1,0,0,0,0,0,0,0,0,0],
+b1s = [0 for i in range(10)]#10个值的b值
+w1s = [[[0 for a in range(28)] for b in range(28)] for k in range(10)]#10个数的28*28的值的数
+target = [[1,0,0,0,0,0,0,0,0,0],#target为目标,经过wx+b以及激活函数处理过后的结果对象
           [0,1,0,0,0,0,0,0,0,0],
           [0,0,1,0,0,0,0,0,0,0],
           [0,0,0,1,0,0,0,0,0,0],
@@ -264,77 +269,18 @@ target = [[1,0,0,0,0,0,0,0,0,0],
           [0,0,0,0,0,0,0,0,1,0],
           [0,0,0,0,0,0,0,0,0,1]]
 
-numbers_length = len(IMG.objects.filter().values())
-imgs = [["" for c in range(28)] for d in range(numbers_length)]
-imgs_number = [0 for g in range(numbers_length)]
-imgs_target = [[] for h in range(numbers_length)]
+numbers_length = len(IMG.objects.filter().values())#数据库数据的长度
+imgs = [["" for c in range(28)] for d in range(numbers_length)]#用于保存数据库图片信息
+imgs_number = [0 for g in range(numbers_length)]#用于保存数据库中数据对应的数字
+imgs_target = [[] for h in range(numbers_length)]#保存数据库图片对应的目标数组
 
-zero = [
-        ["0000011111111111111110000000",
-        "0000111111111111111111110000",
-        "0011111111111111111111111100",
-        "0111111111111111111111111100",
-        "0111111111111111111111111110",
-        "1111111111111111111111111110",
-        "1111111100000011110111111111",
-        "1111110000000000000000111111",
-        "1111100000000000000000111111",
-        "1111100000000000000000011111",
-        "1111100000000000000000011111",
-        "1111100000000000000000011111",
-        "1111100000000000000000011111",
-        "1111100000000000000000011111",
-        "1111100000000000000000011111",
-        "1111100000000000000000011111",
-        "1111100000000000000000011111",
-        "1111100000000000000000011111",
-        "1111110000000000000001111111",
-        "1111110000000000000001111111",
-        "1111111000000000000111111111",
-        "1111111000000011111111111110",
-        "0111111111111111111111111100",
-        "0111111111111111111111111000",
-        "0011111111111111111111100000",
-        "0001111111111111111111000000",
-        "0001111111111111111100000000",
-        "0000011111111111100000000000"],
-
-        ["0000000000000001111111111000",
-         "0000000000000111111111111100",
-         "0000000000111111111111111100",
-         "0000000111111111111111111110",
-         "0000001111111111111111111111",
-         "0000011111111111111111111111",
-         "0001111111111111111111111111",
-         "0011111111111111100111111111",
-         "0011111111111110000011111111",
-         "0111111111110000000011111111",
-         "0111111111100000000011111111",
-         "0111111111000000000011111111",
-         "0111111110000000000111111111",
-         "0111111110000000000111111111",
-         "1111111110000000000111111111",
-         "1111111110000000000111111111",
-         "1111111100000000000111111111",
-         "1111111100000000001111111110",
-         "1111111100000000011111111110",
-         "1111111100000000111111111100",
-         "1111111100000111111111111100",
-         "1111111111111111111111111000",
-         "1111111111111111111111111000",
-         "1111111111111111111111110000",
-         "0111111111111111111111000000",
-         "0111111111111111111110000000",
-         "0011111111111111110000000000",
-         "0000111111111111000000000000",]
-        ]
-
-list_number = 0
-for img in IMG.objects.filter().values():
+list_number = 0#数据编号
+for img in IMG.objects.filter().values():#遍历数据库,
 
     for e in range(28):
-        imgs[list_number][e] = img["col" + str(e)]
+        imgs[list_number][e] = img["col" + str(e)]#imgs初始化
 
+    #imgs_number以及imgs_target初始化
     if img["number"] == "0":
         imgs_number[list_number] = 0
         imgs_target[list_number] = target[0]
@@ -370,12 +316,12 @@ for img in IMG.objects.filter().values():
 
 #第一层
 def result1(self):
-    sums = [0 for i in range(10)]
+    sums = [0 for i in range(10)]#保存sum值经过激活函数处理之后的值
     for a in range(10):
         sum = 0
         for i in range(28):
             for j in range(28):
-                sum = sum + int(self[i][j]) * w1s[a][i][j]
+                sum = sum + int(self[i][j]) * w1s[a][i][j]#sum为对应的数据*对应的数据所对应的w值的和加上对应值的b值
         sum = sum + b1s[a]
         sums[a] = f(sum)
     return sums
@@ -383,22 +329,22 @@ def result1(self):
 #训练函数
 def train(self,TAR):
     global w1s,b1s
-    delta1 = [0 for i in range(10)]
-    rate1 = 0.01
-    result = result1(self)
+    delta1 = [0 for i in range(10)]#与目标状态的差值
+    rate1 = 0.01#训练速率
+    result = result1(self)#获得结果对象
     #遍历隐藏层结点
     for i in range(10):
         delta1[i] = TAR[i] - result[i]
     for i in range(10):
         for j in range(28):
             for k in range(28):
-                w1s[i][j][k] = w1s[i][j][k] + rate1 * delta1[i] * int(self[j][k])
-        b1s[i] = b1s[i] + rate1 * delta1[i]
+                w1s[i][j][k] = w1s[i][j][k] + rate1 * delta1[i] * int(self[j][k])#更新w
+        b1s[i] = b1s[i] + rate1 * delta1[i]#更新b
 
 #结果输出
 def out(self):
-    number = 0
-    level2 = ""
+    number = 0#储存识别的数值结果
+    level2 = ""#将数组转为字符串
     for i in self:
         level2 = level2 + str(i)
     #print(level2)
